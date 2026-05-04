@@ -26,7 +26,7 @@ export function Text({ style, className, ...props }: TextProps & { className?: s
 
   const { fontWeight, ...styleWithoutWeight } = flat;
 
-  return <RNText {...props} className={className} style={[styleWithoutWeight, { fontFamily }]} />;
+  return <RNText {...props} className={className} style={[styleWithoutWeight, { fontFamily, fontWeight: "normal" }]} />;
 }
 
 /** Numbers/amounts only — uses Space Grotesk Bold. */

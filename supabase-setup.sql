@@ -82,5 +82,10 @@ CREATE POLICY "Users can delete own transactions"
   ON transactions FOR DELETE TO authenticated
   USING (created_by = auth.uid());
 
+CREATE POLICY "Users can update own transactions"
+  ON transactions FOR UPDATE TO authenticated
+  USING (created_by = auth.uid())
+  WITH CHECK (created_by = auth.uid());
+
 -- 6. Enable Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE transactions;

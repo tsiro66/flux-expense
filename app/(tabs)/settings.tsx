@@ -1,5 +1,5 @@
 import { View, Pressable } from "react-native";
-import { Text } from "@/components/ui/text";
+import { Text, AmountText } from "@/components/ui/text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from "expo-constants";
 import { useAuth } from "@/contexts/auth-context";
@@ -34,21 +34,25 @@ export default function SettingsScreen() {
           <View className="h-px bg-neutral-800" />
           <View>
             <Text className="text-neutral-500 text-xs">NET BALANCE</Text>
-            <Text
-              className={`text-base font-medium ${
-                balance > 0
-                  ? "text-green-400"
-                  : balance < 0
-                    ? "text-red-400"
-                    : "text-neutral-400"
-              }`}
-            >
-              {balance > 0
-                ? `${partner?.display_name ?? "Partner"} owes you €${balance.toFixed(2)}`
-                : balance < 0
-                  ? `You owe ${partner?.display_name ?? "Partner"} €${Math.abs(balance).toFixed(2)}`
-                  : "All settled!"}
-            </Text>
+            {balance > 0 ? (
+              <Text className="text-base font-medium text-green-400">
+                {partner?.display_name ?? "Partner"} owes you{" "}
+                <AmountText className="text-base text-green-400">
+                  €{balance.toFixed(2)}
+                </AmountText>
+              </Text>
+            ) : balance < 0 ? (
+              <Text className="text-base font-medium text-red-400">
+                You owe {partner?.display_name ?? "Partner"}{" "}
+                <AmountText className="text-base text-red-400">
+                  €{Math.abs(balance).toFixed(2)}
+                </AmountText>
+              </Text>
+            ) : (
+              <Text className="text-base font-medium text-neutral-400">
+                All settled!
+              </Text>
+            )}
           </View>
         </View>
 

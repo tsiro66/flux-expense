@@ -13,11 +13,14 @@ import type { TransactionType } from "@/lib/types";
 interface TransactionFormProps {
   initialType?: TransactionType;
   initialAmount?: string;
+  initialDescription?: string;
+  submitLabel?: string;
   onSubmit: (
     type: TransactionType,
     amount: number,
     description: string | null
   ) => Promise<void>;
+  onDelete?: () => Promise<void>;
 }
 
 const TYPES: { key: TransactionType; label: string }[] = [
@@ -29,13 +32,30 @@ const TYPES: { key: TransactionType; label: string }[] = [
 export function TransactionForm({
   initialType = "expense",
   initialAmount = "",
+  initialDescription = "",
+  submitLabel,
   onSubmit,
+  onDelete,
 }: TransactionFormProps) {
   const [type, setType] = useState<TransactionType>(initialType);
   const [amount, setAmount] = useState(initialAmount);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState(initialDescription);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    setError(null);
+    setDeleting(true);
+    try {
+      await onDelete();
+    } catch (e: any) {
+      setError(e.message ?? "Failed to delete");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSubmit = async () => {
     const num = parseFloat(amount);
@@ -120,19 +140,38 @@ export function TransactionForm({
         {/* Submit */}
         <Pressable
           onPress={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || deleting}
           className={`py-4 rounded-2xl items-center bg-white ${
-            submitting ? "opacity-50" : "active:opacity-80"
+            submitting || deleting ? "opacity-50" : "active:opacity-80"
           }`}
         >
           {submitting ? (
             <ActivityIndicator color="#000" />
           ) : (
             <Text className="text-black text-base font-bold">
-              Log {activeType.label}
+              {submitLabel ?? `Log ${activeType.label}`}
             </Text>
           )}
         </Pressable>
+
+        {/* Delete */}
+        {onDelete && (
+          <Pressable
+            onPress={handleDelete}
+            disabled={submitting || deleting}
+            className={`py-4 rounded-2xl items-center bg-red-500/15 ${
+              submitting || deleting ? "opacity-50" : "active:opacity-80"
+            }`}
+          >
+            {deleting ? (
+              <ActivityIndicator color="#E53935" />
+            ) : (
+              <Text className="text-red-400 text-base font-semibold">
+                Delete Transaction
+              </Text>
+            )}
+          </Pressable>
+        )}
       </View>
     </KeyboardAvoidingView>
   );

@@ -7,6 +7,7 @@ import { TransactionItem } from "@/components/transaction-item";
 import { useAuth } from "@/contexts/auth-context";
 import { useNetBalance } from "@/hooks/use-net-balance";
 import { useTransactions } from "@/hooks/use-transactions";
+import type { Transaction } from "@/lib/types";
 
 const ACTION_BUTTONS = [
   { type: "expense" as const, label: "Expense", icon: "−" },
@@ -21,6 +22,18 @@ export default function DashboardScreen() {
   const { transactions, loading: txLoading } = useTransactions(5);
 
   const partnerName = partner?.display_name ?? "Partner";
+
+  const handleEdit = (tx: Transaction) => {
+    router.push({
+      pathname: "/add-transaction",
+      params: {
+        transactionId: tx.id,
+        type: tx.type,
+        amount: String(tx.amount),
+        description: tx.description ?? "",
+      },
+    });
+  };
 
   const handleAction = (type: string) => {
     const params: Record<string, string> = { type };
@@ -74,6 +87,7 @@ export default function DashboardScreen() {
                   key={tx.id}
                   transaction={tx}
                   currentUserId={user?.id ?? ""}
+                  onEdit={handleEdit}
                 />
               ))}
             </View>

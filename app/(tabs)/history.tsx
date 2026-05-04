@@ -1,14 +1,29 @@
 import { View, FlatList, ActivityIndicator } from "react-native";
 import { Text } from "@/components/ui/text";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TransactionItem } from "@/components/transaction-item";
 import { useAuth } from "@/contexts/auth-context";
 import { useTransactions } from "@/hooks/use-transactions";
+import type { Transaction } from "@/lib/types";
 
 export default function HistoryScreen() {
+  const router = useRouter();
   const { user } = useAuth();
   const { transactions, loading, refreshing, error, refresh } =
     useTransactions();
+
+  const handleEdit = (tx: Transaction) => {
+    router.push({
+      pathname: "/add-transaction",
+      params: {
+        transactionId: tx.id,
+        type: tx.type,
+        amount: String(tx.amount),
+        description: tx.description ?? "",
+      },
+    });
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-neutral-950">
@@ -38,6 +53,7 @@ export default function HistoryScreen() {
             <TransactionItem
               transaction={item}
               currentUserId={user?.id ?? ""}
+              onEdit={handleEdit}
             />
           )}
           refreshing={refreshing}

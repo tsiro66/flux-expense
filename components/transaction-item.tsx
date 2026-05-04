@@ -1,10 +1,11 @@
-import { View } from "react-native";
+import { View, Pressable } from "react-native";
 import { Text, AmountText } from "@/components/ui/text";
 import type { Transaction } from "@/lib/types";
 
 interface TransactionItemProps {
   transaction: Transaction;
   currentUserId: string;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 const TYPE_CONFIG = {
@@ -16,6 +17,7 @@ const TYPE_CONFIG = {
 export function TransactionItem({
   transaction,
   currentUserId,
+  onEdit,
 }: TransactionItemProps) {
   const config = TYPE_CONFIG[transaction.type];
   const isOwn = transaction.created_by === currentUserId;
@@ -24,8 +26,10 @@ export function TransactionItem({
   const date = new Date(transaction.created_at);
   const formatted = `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}/${date.getFullYear()}`;
 
-  return (
-    <View className="flex-row items-center px-4 py-3.5 border-b border-neutral-800/60">
+  const canEdit = isOwn && onEdit;
+
+  const content = (
+    <>
       {/* Type icon */}
       <View className="w-10 h-10 rounded-full items-center justify-center bg-neutral-800">
         <Text className="text-lg text-neutral-400 text-center leading-5">{config.icon}</Text>
@@ -45,6 +49,23 @@ export function TransactionItem({
       <AmountText className="text-sm text-neutral-300">
         €{Number(transaction.amount).toFixed(2)}
       </AmountText>
-    </View>
+    </>
   );
+
+  const rowClass = `flex-row items-center px-4 py-3.5 border-b border-neutral-800/60 ${
+    isOwn ? "border-l-2 border-l-neutral-600" : ""
+  }`;
+
+  if (canEdit) {
+    return (
+      <Pressable
+        onPress={() => onEdit(transaction)}
+        className={`${rowClass} active:opacity-70`}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+
+  return <View className={rowClass}>{content}</View>;
 }

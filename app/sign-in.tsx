@@ -1,3 +1,4 @@
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/contexts/auth-context";
 import { useState } from "react";
@@ -14,6 +15,7 @@ export default function SignInScreen() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -51,20 +53,36 @@ export default function SignInScreen() {
           placeholderTextColor="#404040"
           placeholder="Email"
           autoCapitalize="none"
+          autoCorrect={false}
+          spellCheck={false}
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
 
         {/* Password */}
-        <TextInput
-          className="bg-neutral-800/50 border border-neutral-700/50 text-white text-base px-4 py-4 rounded-2xl"
-          placeholderTextColor="#404040"
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View className="flex-row items-center bg-neutral-800/50 border border-neutral-700/50 rounded-2xl">
+          <TextInput
+            className="flex-1 text-white text-base px-4 py-4"
+            placeholderTextColor="#404040"
+            placeholder="Password"
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            value={password}
+            onChangeText={setPassword}
+          />
+          <Pressable
+            onPress={() => setShowPassword(!showPassword)}
+            hitSlop={8}
+            className="px-4 active:opacity-50"
+          >
+            <MaterialIcons
+              name={showPassword ? "visibility" : "visibility-off"}
+              size={20}
+              color="#525252"
+            />
+          </Pressable>
+        </View>
 
         {/* Error */}
         {error && (

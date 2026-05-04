@@ -48,3 +48,26 @@ export async function deleteTransaction(id: string): Promise<void> {
   const { error } = await supabase.from("transactions").delete().eq("id", id);
   if (error) throw error;
 }
+
+export async function updateTransaction(
+  id: string,
+  fields: {
+    type: TransactionType;
+    amount: number;
+    description: string | null;
+  }
+): Promise<Transaction> {
+  const { data, error } = await supabase
+    .from("transactions")
+    .update({
+      type: fields.type,
+      amount: fields.amount,
+      description: fields.description,
+    })
+    .eq("id", id)
+    .select("*, profiles(display_name)")
+    .single();
+
+  if (error) throw error;
+  return data as unknown as Transaction;
+}

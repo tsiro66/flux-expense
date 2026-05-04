@@ -67,7 +67,9 @@ function RootNavigator() {
           presentation: "modal",
           headerShown: true,
           headerTitle: "New Transaction",
-          headerStyle: { backgroundColor: "#171717" },
+          headerStyle: { backgroundColor: "#0a0a0a" },
+          headerTitleStyle: { fontFamily: "Syne_700Bold" },
+          headerShadowVisible: false,
           headerTintColor: "#fff",
         }}
       />
