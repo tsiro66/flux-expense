@@ -1,98 +1,85 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { View, ScrollView, Pressable } from "react-native";
+import { Text } from "@/components/ui/text";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { BalanceCircle } from "@/components/balance-circle";
+import { TransactionItem } from "@/components/transaction-item";
+import { useAuth } from "@/contexts/auth-context";
+import { useNetBalance } from "@/hooks/use-net-balance";
+import { useTransactions } from "@/hooks/use-transactions";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const ACTION_BUTTONS = [
+  { type: "expense" as const, label: "Expense", icon: "−" },
+  { type: "income" as const, label: "Income", icon: "+" },
+  { type: "payment" as const, label: "Payment", icon: "⇄" },
+];
 
-export default function HomeScreen() {
+export default function DashboardScreen() {
+  const router = useRouter();
+  const { user, partner } = useAuth();
+  const { balance, loading: balanceLoading } = useNetBalance();
+  const { transactions, loading: txLoading } = useTransactions(5);
+
+  const partnerName = partner?.display_name ?? "Partner";
+
+  const handleAction = (type: string) => {
+    const params: Record<string, string> = { type };
+    // Pre-fill payment amount if user owes money
+    if (type === "payment" && balance < 0) {
+      params.amount = Math.abs(balance).toFixed(2);
+    }
+    router.push({ pathname: "/add-transaction", params });
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView className="flex-1 bg-neutral-950">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="items-center pt-12 pb-8 px-4"
+      >
+        {/* Balance circle */}
+        <BalanceCircle
+          balance={balance}
+          loading={balanceLoading}
+          partnerName={partnerName}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* Action buttons */}
+        <View className="flex-row gap-6 mt-10">
+          {ACTION_BUTTONS.map((btn) => (
+            <Pressable
+              key={btn.type}
+              onPress={() => handleAction(btn.type)}
+              className="items-center active:opacity-70"
+            >
+              <View className="w-16 h-16 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center mb-2">
+                <Text className="text-neutral-300 text-xl">{btn.icon}</Text>
+              </View>
+              <Text className="text-neutral-400 text-xs font-medium tracking-wide">
+                {btn.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Recent transactions */}
+        {transactions.length > 0 && (
+          <View className="w-full mt-10">
+            <Text className="text-neutral-500 text-xs font-semibold tracking-widest px-4 mb-3">
+              RECENT
+            </Text>
+            <View className="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden">
+              {transactions.map((tx) => (
+                <TransactionItem
+                  key={tx.id}
+                  transaction={tx}
+                  currentUserId={user?.id ?? ""}
+                />
+              ))}
+            </View>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
